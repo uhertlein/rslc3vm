@@ -154,22 +154,22 @@ impl Machine {
         println!("instr=0x{:04x}, opcode={:?}", instr, opcode);
 
         match opcode {
-            Opcode::ADD => self.fn_add(instr),
-            Opcode::AND => self.fn_and(instr),
-            Opcode::LD => self.fn_ld(instr),
-            Opcode::LDI => self.fn_ldi(instr),
-            Opcode::LDR => self.fn_ldr(instr),
-            Opcode::LEA => self.fn_lea(instr),
-            Opcode::NOT => self.fn_not(instr),
-            Opcode::ST => self.fn_st(instr),
-            Opcode::STI => self.fn_sti(instr),
-            Opcode::STR => self.fn_str(instr),
-            Opcode::JMP => self.fn_jmp(instr),
-            Opcode::JSR => self.fn_jsr(instr),
-            Opcode::BR => self.fn_br(instr),
-            Opcode::TRAP => self.fn_trap(instr),
-            Opcode::RTI => self.fn_reserved(instr),
-            Opcode::RESERVED => self.fn_reserved(instr),
+            Opcode::ADD => self.opc_add(instr),
+            Opcode::AND => self.opc_and(instr),
+            Opcode::LD => self.opc_ld(instr),
+            Opcode::LDI => self.opc_ldi(instr),
+            Opcode::LDR => self.opc_ldr(instr),
+            Opcode::LEA => self.opc_lea(instr),
+            Opcode::NOT => self.opc_not(instr),
+            Opcode::ST => self.opc_st(instr),
+            Opcode::STI => self.opc_sti(instr),
+            Opcode::STR => self.opc_str(instr),
+            Opcode::JMP => self.opc_jmp(instr),
+            Opcode::JSR => self.opc_jsr(instr),
+            Opcode::BR => self.opc_br(instr),
+            Opcode::TRAP => self.opc_trap(instr),
+            Opcode::RTI => self.opc_reserved(instr),
+            Opcode::RESERVED => self.opc_reserved(instr),
         }
     }
 
@@ -193,7 +193,7 @@ impl Machine {
         self.reg[reg as usize] = value;
     }
 
-    // Update condition register dependent of value of 'reg'
+    // Update condition register dependent on value of 'reg'
     fn update_rcnd(&mut self, reg: Register) {
         let value = self.regr(reg);
         if value == 0 {
@@ -244,7 +244,7 @@ impl Machine {
     }
 
     // add: dr = sr1 + (sr2 | imm5)
-    fn fn_add(&mut self, instr: u16) {
+    fn opc_add(&mut self, instr: u16) {
         let dr = Machine::dstreg(instr);
         let value1 = self.regr(Machine::srcreg1(instr));
         let value2 = match Machine::is_immediate5(instr) {
@@ -258,7 +258,7 @@ impl Machine {
     }
 
     // and: dr = sr1 + (sr2 | imm5)
-    fn fn_and(&mut self, instr: u16) {
+    fn opc_and(&mut self, instr: u16) {
         let dr = Machine::dstreg(instr);
         let value1 = self.regr(Machine::srcreg1(instr));
         let value2 = match Machine::is_immediate5(instr) {
@@ -272,7 +272,7 @@ impl Machine {
     }
 
     // ld: dr = [rpc + offset9]
-    fn fn_ld(&mut self, instr: u16) {
+    fn opc_ld(&mut self, instr: u16) {
         let dr = Machine::dstreg(instr);
         let offset9 = Machine::sign_extend_immediate(instr & 0x1ff, 9);
         let addr = self.regr(Register::RPC).overflowing_add(offset9).0;
@@ -283,7 +283,7 @@ impl Machine {
     }
 
     // ldi: dr = [[rpc + offset9]]
-    fn fn_ldi(&mut self, instr: u16) {
+    fn opc_ldi(&mut self, instr: u16) {
         let dr = Machine::dstreg(instr);
         let offset9 = Machine::sign_extend_immediate(instr & 0x1ff, 9);
         let addr = self.regr(Register::RPC).overflowing_add(offset9).0;
@@ -294,7 +294,7 @@ impl Machine {
     }
 
     // ldr: dr = [sr1 + offset6]
-    fn fn_ldr(&mut self, instr: u16) {
+    fn opc_ldr(&mut self, instr: u16) {
         let dr = Machine::dstreg(instr);
         let sr1 = Machine::srcreg1(instr);
         let offset6 = Machine::sign_extend_immediate(instr & 0x3f, 6);
@@ -306,7 +306,7 @@ impl Machine {
     }
 
     // lea: dr = drpc + offset9
-    fn fn_lea(&mut self, instr: u16) {
+    fn opc_lea(&mut self, instr: u16) {
         let dr = Machine::dstreg(instr);
         let offset9 = Machine::sign_extend_immediate(instr & 0x1ff, 9);
         let addr = self.regr(Register::RPC).overflowing_add(offset9).0;
@@ -316,7 +316,7 @@ impl Machine {
     }
 
     // not: dr = ~sr1
-    fn fn_not(&mut self, instr: u16) {
+    fn opc_not(&mut self, instr: u16) {
         let dr = Machine::dstreg(instr);
         let sr1 = Machine::srcreg1(instr);
 
@@ -326,7 +326,7 @@ impl Machine {
     }
 
     // st: [rpc + offset9] = dr
-    fn fn_st(&mut self, instr: u16) {
+    fn opc_st(&mut self, instr: u16) {
         let dr = Machine::dstreg(instr);
         let offset9 = Machine::sign_extend_immediate(instr & 0x1ff, 9);
         let addr = self.regr(Register::RPC).overflowing_add(offset9).0;
@@ -336,7 +336,7 @@ impl Machine {
     }
 
     // sti: [[rpc + offset9]] = dr
-    fn fn_sti(&mut self, instr: u16) {
+    fn opc_sti(&mut self, instr: u16) {
         let dr = Machine::dstreg(instr);
         let offset9 = Machine::sign_extend_immediate(instr & 0x1ff, 9);
         let addr = self.regr(Register::RPC).overflowing_add(offset9).0;
@@ -347,7 +347,7 @@ impl Machine {
     }
 
     // str: [sr1 + offset6] = dr
-    fn fn_str(&mut self, instr: u16) {
+    fn opc_str(&mut self, instr: u16) {
         let dr = Machine::dstreg(instr);
         let sr1 = Machine::srcreg1(instr);
         let offset6 = Machine::sign_extend_immediate(instr & 0x3f, 6);
@@ -358,7 +358,7 @@ impl Machine {
     }
 
     // jmp: rpc = sr1
-    fn fn_jmp(&mut self, instr: u16) {
+    fn opc_jmp(&mut self, instr: u16) {
         let sr1 = Machine::srcreg1(instr);
 
         let addr = self.regr(sr1);
@@ -366,7 +366,7 @@ impl Machine {
     }
 
     // jsr: r7 = rpc, rpc = sr1 | (rpc + offset11)
-    fn fn_jsr(&mut self, instr: u16) {
+    fn opc_jsr(&mut self, instr: u16) {
         // Store return address in R7
         let pc = self.regr(Register::RPC);
         self.regw(Register::R7, pc);
@@ -379,7 +379,7 @@ impl Machine {
     }
 
     // br: rpc = rpc + offset9 iff condition is met
-    fn fn_br(&mut self, instr: u16) {
+    fn opc_br(&mut self, instr: u16) {
         let branch_cond = (instr >> 9) & 0x7;
         let offset9 = Machine::sign_extend_immediate(instr & 0x1ff, 9);
 
@@ -392,7 +392,7 @@ impl Machine {
     }
 
     // trap:
-    fn fn_trap(&mut self, instr: u16) {
+    fn opc_trap(&mut self, instr: u16) {
         let trapvec = Machine::trapvec(instr);
         match trapvec {
             TrapVec::TGETC => self.trap_tgetc(),
@@ -405,7 +405,7 @@ impl Machine {
     }
 
     // opcode reserved/not implemented:
-    fn fn_reserved(&mut self, instr: u16) {
+    fn opc_reserved(&mut self, instr: u16) {
         println!("opcode reserved/not implemented: {:02x}", instr);
     }
 
