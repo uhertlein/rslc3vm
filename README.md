@@ -39,7 +39,7 @@ Also, my first introduction to Rust :-)
     ```rust
     let s1 = String::from("hello");
     let s2 = s1; // s1 becomes invalid
-    
+
     fn foo(s: String) { ... } // string is moved to 'foo'
     foo(s2);
     ```
@@ -88,9 +88,31 @@ Also, my first introduction to Rust :-)
     - these are actually amazing in Rust!
   - debugging using `lldb`
 
-## Samples
+## Sample Programs
 
-These two sample programs are from Andrei's code.
+- programs are encoded as little-endian
+
+### `tputs.lc3obj`
+
+- loads address of nul-terminated string
+- prints string to console
+- terminates
+
+```
+0x3000: 0xE002  // LEA R0, 0x02 (R0 = 0x3003 = 0x3001(PC) + 0x02)
+0x3001: 0xF022  // TRAP TPUTS
+0x3002: 0xF025  // TRAP HALT
+
+Data
+0x3003: 0x0048  // 'H'
+0x3004: 0x0045  // 'E'
+0x3005: 0x004C  // 'L'
+0x3006: 0x004C  // 'L'
+0x3007: 0x004F  // 'O'
+0x3008: 0x0000  // NUL
+```
+
+The following two sample programs are from Andrei's code.
 
 ### `sum.lc3obj`
 
@@ -115,11 +137,11 @@ These two sample programs are from Andrei's code.
 - terminates
 
 ```
-0x5260    //  0101 0010 0110 0000             AND R1,R1,x0    ;clear R1, to be used for the running sum               
-0x5920    //  0101 1001 0010 0000             AND R4,R4,x0    ;clear R4, to be used as a counter                      
-0x192A    //  0001 1001 0010 1010             ADD R4,R4,xB    ;load R4 with #10, the number of times to add           
-0xE406    //  1110 0100 0000 0110             LEA R2,x7       ;load the starting address of the data          
-0x6680    //  0110 0110 1000 0000     LOOP    LDR R3,R2,x0    ;load the next number to be added                       
+0x5260    //  0101 0010 0110 0000             AND R1,R1,x0    ;clear R1, to be used for the running sum
+0x5920    //  0101 1001 0010 0000             AND R4,R4,x0    ;clear R4, to be used as a counter
+0x192A    //  0001 1001 0010 1010             ADD R4,R4,xB    ;load R4 with #10, the number of times to add
+0xE406    //  1110 0100 0000 0110             LEA R2,x7       ;load the starting address of the data
+0x6680    //  0110 0110 1000 0000     LOOP    LDR R3,R2,x0    ;load the next number to be added
 0x14A1    //  0001 0100 1010 0001             ADD R2,R2,x1    ;increment the pointer
 0x1243    //  0001 0010 0100 0011             ADD R1,R1,R3    ;add the next number to the running sum
 0x193F    //  0001 1001 0011 1111             ADD R4,R4,x-1   ;decrement the counter
@@ -138,4 +160,3 @@ Data at 0x300A
 0x0002 /* +2 = 15 */
 0x0001 /* +1 = 16 */
 ```
-

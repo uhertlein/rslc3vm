@@ -57,12 +57,12 @@ enum Opcode {
 enum TrapVec {
     TGETC = 0x20, // reads a character from console to R0
     TPUTC,        // writes character in R0 to console
-    TPUTS,
-    TIN,
-    TPUTSP,
-    THALT,   // halts execution
-    TINU16,  // reads a u16 from console to R0
-    TOUTU16, // writes u16 from R0 to console
+    TPUTS,        // print u16 string at R0 until it finds 0x0000
+    TIN,          // like TGETC, but echos character to console
+    TPUTSP,       // like TPUTS, but prints u8 string (two characters per word)
+    THALT,        // halts execution
+    TINU16,       // reads a u16 from console to R0
+    TOUTU16,      // writes u16 from R0 to console
 }
 
 // Returns u8 view of u16 buffer
@@ -397,6 +397,7 @@ impl Machine {
         match trapvec {
             TrapVec::TGETC => self.trap_tgetc(),
             TrapVec::TPUTC => self.trap_tputc(),
+            TrapVec::TPUTS => self.trap_tputs(),
             TrapVec::THALT => self.trap_thalt(),
             TrapVec::TINU16 => self.trap_tinu16(),
             TrapVec::TOUTU16 => self.trap_toutu16(),
@@ -430,6 +431,21 @@ impl Machine {
     fn trap_tputc(&self) {
         let value = self.regr(Register::R0) as u8;
         println!("0x{:02x}", value);
+    }
+
+    // tputs: prints u16 string at R0, until it finds 0x0000
+    fn trap_tputs(&self) {
+        let mut addr = self.regr(Register::R0);
+        loop {
+            let value = self.memr(addr);
+            if value == 0x0000 {
+                break;
+            }
+
+            print!("{}", char::from_u32(value as u32).unwrap());
+            addr += 1;
+        }
+        println!("");
     }
 
     // thalt: halt machine
