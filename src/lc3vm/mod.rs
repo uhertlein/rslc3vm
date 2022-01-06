@@ -230,16 +230,18 @@ impl Machine {
         TrapVec::from_u16(instr & 0xff).unwrap()
     }
 
-    // Is 'immediate5' flag set?
-    fn is_immediate5(instr: u16) -> bool {
-        ((instr >> 5) & 0x1) != 0
+    // Gets a value indicating whether 'bit' is set in 'value'
+    fn is_bit_set(value: u16, bit: u8) -> bool {
+        ((value >> bit) & 0x1) != 0
     }
 
-    // Sign-extended immediate; sign depends on value of 'bit'
-    fn sign_extend_immediate(num: u16, bit: u8) -> u16 {
-        match ((num >> (bit - 1)) & 1) != 0 {
-            true => (num | (0xffff << bit)),
-            false => num,
+    // Returns sign-extended N-bit immediate from 'value'
+    fn sign_extend_immediate(value: u16, bitsize: u8) -> u16 {
+        let masked = value & ((1 << bitsize) - 1);
+        assert_eq!(value, masked);
+        match ((value >> (bitsize - 1)) & 1) != 0 {
+            true => (value | (0xffff << bitsize)),
+            false => value,
         }
     }
 
@@ -247,7 +249,7 @@ impl Machine {
     fn opc_add(&mut self, instr: u16) {
         let dr = Machine::dstreg(instr);
         let value1 = self.regr(Machine::srcreg1(instr));
-        let value2 = match Machine::is_immediate5(instr) {
+        let value2 = match Machine::is_bit_set(instr, 5) {
             true => Machine::sign_extend_immediate(instr & 0x1f, 5),
             false => self.regr(Machine::srcreg2(instr)),
         };
@@ -261,7 +263,7 @@ impl Machine {
     fn opc_and(&mut self, instr: u16) {
         let dr = Machine::dstreg(instr);
         let value1 = self.regr(Machine::srcreg1(instr));
-        let value2 = match Machine::is_immediate5(instr) {
+        let value2 = match Machine::is_bit_set(instr, 5) {
             true => Machine::sign_extend_immediate(instr & 0x1f, 5),
             false => self.regr(Machine::srcreg2(instr)),
         };
@@ -371,7 +373,7 @@ impl Machine {
         let pc = self.regr(Register::RPC);
         self.regw(Register::R7, pc);
 
-        let addr = match ((instr >> 11) & 0x1) != 0 {
+        let addr = match Machine::is_bit_set(instr, 11) {
             true => Machine::sign_extend_immediate(instr & 0x7ff, 11),
             false => self.regr(Machine::srcreg1(instr)),
         };
